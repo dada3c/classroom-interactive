@@ -6,21 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Classroom Interactive</title>
     <script>
-      // Restore path from 404.html redirect
-      (function() {
-        var p = window.location.search.slice(1).split('&').filter(function(s){ return s.startsWith('p=/') });
-        if (p.length > 0) {
-          var path = p[0].slice(3).replace(/~and~/g, '&');
-          var rest = window.location.search.slice(1).split('&').filter(function(s){ return !s.startsWith('p=/') && !s.startsWith('q=') });
-          var q = window.location.search.slice(1).split('&').filter(function(s){ return s.startsWith('q=') });
+      // Restore path encoded by 404.html (?/path format)
+      (function(l) {
+        if (l.search[1] === '/') {
+          var decoded = l.search.slice(1).split('&').map(function(s) {
+            return s.replace(/~and~/g, '&');
+          });
           window.history.replaceState(null, null,
-            window.location.pathname.slice(0, -1) + (path || '/') +
-            (rest.length > 0 ? '?' + rest.join('&') : '') +
-            (q.length > 0 ? '?' + q[0].slice(2).replace(/~and~/g, '&') : '') +
-            window.location.hash
+            l.pathname.slice(0, -1) + decoded[0] +
+            (decoded.slice(1).join('&') ? '?' + decoded.slice(1).join('&') : '') +
+            l.hash
           );
         }
-      })();
+      }(window.location));
     </script>
   </head>
   <body>
