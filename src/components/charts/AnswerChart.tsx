@@ -8,8 +8,8 @@ interface AnswerChartProps {
 
 const COLORS = { O: '#06d6a0', X: '#ef476f' }
 
-const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {
-  cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; percent: number
+const renderCustomLabel = ({ cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 }: {
+  cx?: number; cy?: number; midAngle?: number; innerRadius?: number; outerRadius?: number; percent?: number
 }) => {
   const RADIAN = Math.PI / 180
   const radius = innerRadius + (outerRadius - innerRadius) * 0.5
@@ -83,7 +83,7 @@ export default function AnswerChart({ stats, correctAnswer }: AnswerChartProps) 
               borderRadius: '8px', color: '#e6edf3',
               fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px'
             }}
-            formatter={(value: number) => [`${value} 人`, '']}
+            formatter={(value) => [`${value} 人`, '']}
           />
           <Legend
             formatter={(value) => <span style={{ color: '#e6edf3', fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px' }}>{value}</span>}
