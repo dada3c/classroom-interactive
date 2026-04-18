@@ -1,0 +1,82 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-bg-base: #0d1117;
+  --color-cyan: #00f5d4;
+  --color-cyan-dim: rgba(0, 245, 212, 0.15);
+  --color-amber: #ffd166;
+  --color-mint: #06d6a0;
+  --color-coral: #ef476f;
+
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --animate-fade-up: fadeUp 0.5s ease forwards;
+  --animate-grid-pulse: gridPulse 8s ease-in-out infinite;
+  --animate-glow-pulse: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.25; }
+  50%       { opacity: 0.55; }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 245, 212, 0.3); }
+  50%       { box-shadow: 0 0 40px rgba(0, 245, 212, 0.6); }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, #root {
+  min-height: 100vh;
+  background-color: #0d1117;
+  color: #e6edf3;
+  font-family: 'Syne', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.grid-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(0, 245, 212, 0.18) 1px, transparent 1px);
+  background-size: 32px 32px;
+  animation: gridPulse 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 245, 212, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.glass-amber {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 209, 102, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.glass-coral {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(239, 71, 111, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0, 245, 212, 0.3); border-radius: 2px; }
