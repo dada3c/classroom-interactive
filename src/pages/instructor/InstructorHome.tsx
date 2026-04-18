@@ -39,6 +39,7 @@ export default function InstructorHome() {
         answerType: 'OX',
         correctAnswer: null,
         question: '',
+        currentRound: 0,
       })
       navigate(`/instructor/${roomId}`)
     } catch (e) {

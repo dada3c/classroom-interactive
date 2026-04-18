@@ -5,11 +5,13 @@ import { answersCol } from '../../lib/firebase'
 import { useRoom } from '../../hooks/useRoom'
 import { useAnswers } from '../../hooks/useAnswers'
 import { useMembers } from '../../hooks/useMembers'
+import { useRounds } from '../../hooks/useRounds'
 import GlassCard from '../../components/ui/GlassCard'
 import WaitingScreen from '../../components/student/WaitingScreen'
 import AnswerButtons from '../../components/student/AnswerButtons'
 import SubmittedScreen from '../../components/student/SubmittedScreen'
 import ResultScreen from '../../components/student/ResultScreen'
+import StudentScoreCard from '../../components/student/StudentScoreCard'
 
 export default function StudentRoom() {
   const { roomId }  = useParams<{ roomId: string }>()
@@ -17,6 +19,7 @@ export default function StudentRoom() {
   const { room, loading } = useRoom(roomId)
   const { stats }         = useAnswers(roomId)
   const { members }       = useMembers(roomId)
+  const { rounds }        = useRounds(roomId)
 
   const [memberId, setMemberId]     = useState<string | null>(null)
   const [nickname, setNickname]     = useState<string>('')
@@ -77,6 +80,29 @@ export default function StudentRoom() {
             返回首頁
           </button>
         </GlassCard>
+      </div>
+    )
+  }
+
+  // Finished state: show personal score
+  if (room.status === 'finished') {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative', zIndex: 1 }}>
+        <div style={{ width: '100%', maxWidth: '400px' }}>
+          <GlassCard className="overflow-hidden">
+            <div style={{ padding: '12px 20px', borderBottom: '1px solid rgba(0,245,212,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <p style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: '#00f5d4', letterSpacing: '0.1em' }}>
+                Room {roomId}
+              </p>
+              <p style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)' }}>
+                {nickname}
+              </p>
+            </div>
+            <div className="p-6">
+              <StudentScoreCard memberId={memberId} nickname={nickname} rounds={rounds} />
+            </div>
+          </GlassCard>
+        </div>
       </div>
     )
   }

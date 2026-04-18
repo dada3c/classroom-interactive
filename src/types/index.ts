@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore'
 
-export type RoomStatus = 'waiting' | 'answering' | 'ended'
+export type RoomStatus = 'waiting' | 'answering' | 'ended' | 'finished'
 export type AnswerType = 'OX' | 'choice'
 
 export interface AnswerOption {
@@ -39,6 +39,7 @@ export interface Room {
   answerType: AnswerType
   correctAnswer: string | null
   question: string
+  currentRound?: number
 }
 
 export interface Member {
@@ -57,4 +58,11 @@ export interface Answer {
 export interface AnswerStats {
   counts: Record<string, number>
   total: number
+}
+
+export interface RoundResult {
+  roundNumber: number
+  answerType: AnswerType
+  correctAnswer: string
+  answers: Record<string, { answer: string; nickname: string; correct: boolean }>
 }

@@ -4,6 +4,7 @@ const STATUS_CONFIG: Record<RoomStatus, { label: string; color: string; ping: bo
   waiting:   { label: '等待中',  color: 'text-amber-400 border-amber-400/30 bg-amber-400/10',   ping: false },
   answering: { label: '作答中',  color: 'text-cyan-400 border-cyan-400/30 bg-cyan-400/10',     ping: true  },
   ended:     { label: '已結束',  color: 'text-coral border-coral/30 bg-coral/10',              ping: false },
+  finished:  { label: '考題結束', color: 'text-purple-400 border-purple-400/30 bg-purple-400/10', ping: false },
 }
 
 interface StatusBadgeProps {

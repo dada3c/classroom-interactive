@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useRoom } from '../../hooks/useRoom'
 import { useMembers } from '../../hooks/useMembers'
 import { useAnswers } from '../../hooks/useAnswers'
+import { useRounds } from '../../hooks/useRounds'
 import GlassCard from '../../components/ui/GlassCard'
 import RoomHeader from '../../components/instructor/RoomHeader'
 import MemberList from '../../components/instructor/MemberList'
@@ -9,6 +10,7 @@ import ControlPanel from '../../components/instructor/ControlPanel'
 import QRDisplay from '../../components/qr/QRDisplay'
 import AnswerChart from '../../components/charts/AnswerChart'
 import NicknameCloud from '../../components/ui/NicknameCloud'
+import SessionReport from '../../components/charts/SessionReport'
 
 export default function InstructorRoom() {
   const { roomId } = useParams<{ roomId: string }>()
@@ -16,6 +18,7 @@ export default function InstructorRoom() {
   const { room, loading, error } = useRoom(roomId)
   const { members }              = useMembers(roomId)
   const { stats }                = useAnswers(roomId)
+  const { rounds }               = useRounds(roomId)
 
   if (loading) return <LoadingScreen />
 
@@ -29,6 +32,25 @@ export default function InstructorRoom() {
             ← 返回講師後台
           </button>
         </GlassCard>
+      </div>
+    )
+  }
+
+  // Finished state: show full session report
+  if (room.status === 'finished') {
+    return (
+      <div style={{ minHeight: '100vh', padding: '24px', position: 'relative', zIndex: 1 }}>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+          <button onClick={() => navigate('/instructor')} style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '24px', display: 'block' }}>
+            ← 返回講師後台
+          </button>
+
+          <GlassCard className="p-6 mb-6">
+            <RoomHeader roomId={room.id} status={room.status} />
+          </GlassCard>
+
+          <SessionReport rounds={rounds} members={members} />
+        </div>
       </div>
     )
   }
@@ -58,7 +80,7 @@ export default function InstructorRoom() {
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
-          {/* QR Code + Members */}
+          {/* QR Code */}
           <GlassCard className="p-6">
             <div style={{ marginBottom: '24px' }}>
               <QRDisplay roomId={room.id} />
@@ -82,6 +104,7 @@ export default function InstructorRoom() {
                 answerType={room.answerType}
                 answeredCount={stats.total}
                 totalMembers={members.length}
+                currentRound={room.currentRound ?? 0}
               />
             </GlassCard>
 
