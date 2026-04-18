@@ -46,7 +46,7 @@ export default function InstructorRoom() {
         </GlassCard>
 
         {/* Main grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px', alignItems: 'start' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
           {/* QR Code + Members */}
           <GlassCard className="p-6">
             <div style={{ marginBottom: '24px' }}>
@@ -68,6 +68,7 @@ export default function InstructorRoom() {
               <ControlPanel
                 roomId={room.id}
                 status={room.status}
+                answerType={room.answerType}
                 answeredCount={stats.total}
                 totalMembers={members.length}
               />
@@ -78,7 +79,7 @@ export default function InstructorRoom() {
                 <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
                   答題統計
                 </h3>
-                <AnswerChart stats={stats} correctAnswer={room.correctAnswer} />
+                <AnswerChart stats={stats} correctAnswer={room.correctAnswer} answerType={room.answerType} />
               </GlassCard>
             )}
           </div>

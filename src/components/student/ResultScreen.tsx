@@ -1,14 +1,20 @@
-import type { AnswerStats } from '../../types'
+import type { AnswerStats, AnswerType } from '../../types'
+import { getOptionsForType, findOption } from '../../types'
 
 interface ResultScreenProps {
   myAnswer: string | null
   correctAnswer: string | null
   stats: AnswerStats
+  answerType: AnswerType
 }
 
-export default function ResultScreen({ myAnswer, correctAnswer, stats }: ResultScreenProps) {
+export default function ResultScreen({ myAnswer, correctAnswer, stats, answerType }: ResultScreenProps) {
   const isCorrect = myAnswer && correctAnswer && myAnswer === correctAnswer
   const didAnswer = !!myAnswer
+  const options = getOptionsForType(answerType)
+
+  const myOpt = myAnswer ? findOption(answerType, myAnswer) : null
+  const correctOpt = correctAnswer ? findOption(answerType, correctAnswer) : null
 
   return (
     <div style={{ textAlign: 'center', padding: '32px 24px', animation: 'fadeUp 0.4s ease forwards' }}>
@@ -27,7 +33,7 @@ export default function ResultScreen({ myAnswer, correctAnswer, stats }: ResultS
             {isCorrect ? '答對了！' : '答錯了'}
           </p>
           <p style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.5)' }}>
-            你的答案：{myAnswer === 'O' ? '○' : '✕'}　正確答案：{correctAnswer === 'O' ? '○' : '✕'}
+            你的答案：<span style={{ color: myOpt?.color }}>{myOpt?.label}</span>　正確答案：<span style={{ color: correctOpt?.color }}>{correctOpt?.label}</span>
           </p>
         </div>
       )}
@@ -37,27 +43,28 @@ export default function ResultScreen({ myAnswer, correctAnswer, stats }: ResultS
         <p style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
           全班統計
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          {[
-            { key: 'O', label: '○', count: stats.O, percent: stats.oPercent, color: '#06d6a0' },
-            { key: 'X', label: '✕', count: stats.X, percent: stats.xPercent, color: '#ef476f' },
-          ].map(({ key, label, count, percent, color }) => (
-            <div key={key} style={{
-              flex: 1, padding: '20px 12px', borderRadius: '12px',
-              background: `${color}10`, border: `1px solid ${color}30`,
-              position: 'relative', overflow: 'hidden',
-            }}>
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${percent}%`, background: `${color}15`, transition: 'height 0.8s ease' }} />
-              <p style={{ fontSize: '32px', color, fontFamily: 'Syne, sans-serif', fontWeight: 800, position: 'relative', zIndex: 1 }}>
-                {count}
-              </p>
-              <p style={{ fontSize: '24px', color, position: 'relative', zIndex: 1 }}>{label}</p>
-              <p style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.5)', position: 'relative', zIndex: 1 }}>
-                {percent.toFixed(0)}%
-                {correctAnswer === key && <span style={{ display: 'block', color, fontSize: '10px', marginTop: '2px' }}>✓ 正解</span>}
-              </p>
-            </div>
-          ))}
+        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${options.length}, 1fr)`, gap: '8px' }}>
+          {options.map(opt => {
+            const count = stats.counts[opt.key] || 0
+            const percent = stats.total > 0 ? (count / stats.total) * 100 : 0
+            return (
+              <div key={opt.key} style={{
+                padding: '16px 8px', borderRadius: '12px',
+                background: `${opt.color}10`, border: `1px solid ${opt.color}30`,
+                position: 'relative', overflow: 'hidden',
+              }}>
+                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${percent}%`, background: `${opt.color}15`, transition: 'height 0.8s ease' }} />
+                <p style={{ fontSize: '28px', color: opt.color, fontFamily: 'Syne, sans-serif', fontWeight: 800, position: 'relative', zIndex: 1 }}>
+                  {count}
+                </p>
+                <p style={{ fontSize: '20px', color: opt.color, position: 'relative', zIndex: 1 }}>{opt.label}</p>
+                <p style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.5)', position: 'relative', zIndex: 1 }}>
+                  {percent.toFixed(0)}%
+                  {correctAnswer === opt.key && <span style={{ display: 'block', color: opt.color, fontSize: '10px', marginTop: '2px' }}>✓ 正解</span>}
+                </p>
+              </div>
+            )
+          })}
         </div>
       </div>
 

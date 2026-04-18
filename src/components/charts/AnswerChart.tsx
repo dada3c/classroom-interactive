@@ -1,12 +1,12 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts'
-import type { AnswerStats } from '../../types'
+import type { AnswerStats, AnswerType } from '../../types'
+import { getOptionsForType } from '../../types'
 
 interface AnswerChartProps {
   stats: AnswerStats
   correctAnswer?: string | null
+  answerType: AnswerType
 }
-
-const COLORS = { O: '#06d6a0', X: '#ef476f' }
 
 const renderCustomLabel = ({ cx = 0, cy = 0, midAngle = 0, innerRadius = 0, outerRadius = 0, percent = 0 }: {
   cx?: number; cy?: number; midAngle?: number; innerRadius?: number; outerRadius?: number; percent?: number
@@ -24,11 +24,12 @@ const renderCustomLabel = ({ cx = 0, cy = 0, midAngle = 0, innerRadius = 0, oute
   )
 }
 
-export default function AnswerChart({ stats, correctAnswer }: AnswerChartProps) {
-  const data = [
-    { name: '○', value: stats.O },
-    { name: '✕', value: stats.X },
-  ].filter(d => d.value > 0)
+export default function AnswerChart({ stats, correctAnswer, answerType }: AnswerChartProps) {
+  const options = getOptionsForType(answerType)
+
+  const data = options
+    .map(opt => ({ name: opt.label, key: opt.key, value: stats.counts[opt.key] || 0, color: opt.color }))
+    .filter(d => d.value > 0)
 
   if (stats.total === 0) {
     return (
@@ -40,24 +41,27 @@ export default function AnswerChart({ stats, correctAnswer }: AnswerChartProps) 
 
   return (
     <div className="w-full">
-      <div className="flex justify-center gap-8 mb-4">
-        {[{ key: 'O', label: '○', count: stats.O }, { key: 'X', label: '✕', count: stats.X }].map(({ key, label, count }) => (
-          <div key={key} className="flex flex-col items-center gap-1">
-            <span style={{
-              fontSize: '32px', fontFamily: 'Syne, sans-serif', fontWeight: 800,
-              color: COLORS[key as 'O' | 'X'],
-              textShadow: `0 0 20px ${COLORS[key as 'O' | 'X']}60`
-            }}>
-              {count}
-            </span>
-            <span style={{ fontSize: '20px', color: COLORS[key as 'O' | 'X'] }}>{label}</span>
-            {correctAnswer === key && (
-              <span style={{ fontSize: '10px', color: COLORS[key as 'O' | 'X'], fontFamily: 'IBM Plex Mono, monospace' }}>
-                ✓ 正確答案
+      <div className="flex justify-center gap-6 mb-4 flex-wrap">
+        {options.map(opt => {
+          const count = stats.counts[opt.key] || 0
+          return (
+            <div key={opt.key} className="flex flex-col items-center gap-1">
+              <span style={{
+                fontSize: '28px', fontFamily: 'Syne, sans-serif', fontWeight: 800,
+                color: opt.color,
+                textShadow: `0 0 20px ${opt.color}60`
+              }}>
+                {count}
               </span>
-            )}
-          </div>
-        ))}
+              <span style={{ fontSize: '20px', color: opt.color }}>{opt.label}</span>
+              {correctAnswer === opt.key && (
+                <span style={{ fontSize: '10px', color: opt.color, fontFamily: 'IBM Plex Mono, monospace' }}>
+                  ✓ 正確答案
+                </span>
+              )}
+            </div>
+          )
+        })}
       </div>
 
       <ResponsiveContainer width="100%" height={200}>
@@ -74,7 +78,7 @@ export default function AnswerChart({ stats, correctAnswer }: AnswerChartProps) 
             animationDuration={800}
           >
             {data.map((entry) => (
-              <Cell key={entry.name} fill={entry.name === '○' ? COLORS.O : COLORS.X} />
+              <Cell key={entry.key} fill={entry.color} />
             ))}
           </Pie>
           <Tooltip

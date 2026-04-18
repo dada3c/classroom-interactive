@@ -1,27 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from '../../lib/firebase'
-import type { RoomStatus } from '../../types'
+import type { RoomStatus, AnswerType } from '../../types'
+import { getOptionsForType } from '../../types'
 import AnimatedCounter from '../ui/AnimatedCounter'
 
 interface ControlPanelProps {
   roomId: string
   status: RoomStatus
+  answerType: AnswerType
   answeredCount: number
   totalMembers: number
-  onEnd?: () => void
 }
 
-export default function ControlPanel({ roomId, status, answeredCount, totalMembers }: ControlPanelProps) {
-  const [correctAnswer, setCorrectAnswer] = useState<'O' | 'X' | null>(null)
+export default function ControlPanel({ roomId, status, answerType, answeredCount, totalMembers }: ControlPanelProps) {
+  const [selectedType, setSelectedType] = useState<AnswerType>(answerType)
+  const [correctAnswer, setCorrectAnswer] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
   const roomRef = doc(db, 'rooms', roomId)
+  const options = getOptionsForType(status === 'waiting' ? selectedType : answerType)
+
+  useEffect(() => { setSelectedType(answerType) }, [answerType])
 
   const startAnswering = async () => {
     setLoading(true)
     setCorrectAnswer(null)
-    await updateDoc(roomRef, { status: 'answering' })
+    await updateDoc(roomRef, { status: 'answering', answerType: selectedType })
     setLoading(false)
   }
 
@@ -43,9 +48,9 @@ export default function ControlPanel({ roomId, status, answeredCount, totalMembe
     <div className="flex flex-col gap-6">
       {/* Answer count display */}
       {(status === 'answering' || status === 'ended') && (
-        <div className="flex items-center justify-center gap-2">
-          <AnimatedCounter value={answeredCount} className="text-5xl font-bold" />
-          <span style={{ fontSize: '20px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace' }}>
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <AnimatedCounter value={answeredCount} className="text-4xl lg:text-5xl font-bold" />
+          <span style={{ fontSize: '16px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace' }}>
             / {totalMembers} 人已作答
           </span>
         </div>
@@ -53,23 +58,53 @@ export default function ControlPanel({ roomId, status, answeredCount, totalMembe
 
       {/* Controls by status */}
       {status === 'waiting' && (
-        <button
-          onClick={startAnswering}
-          disabled={loading || totalMembers === 0}
-          style={{
-            padding: '16px 32px', borderRadius: '12px', fontSize: '18px',
-            fontFamily: 'Syne, sans-serif', fontWeight: 700,
-            background: totalMembers === 0 ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #00f5d4, #06d6a0)',
-            color: totalMembers === 0 ? 'rgba(230,237,243,0.3)' : '#0d1117',
-            border: 'none', cursor: totalMembers === 0 ? 'not-allowed' : 'pointer',
-            transition: 'transform 0.15s, box-shadow 0.15s',
-            boxShadow: totalMembers > 0 ? '0 0 30px rgba(0, 245, 212, 0.3)' : 'none',
-          }}
-          onMouseEnter={e => { if (totalMembers > 0) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)' }}
-          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
-        >
-          {totalMembers === 0 ? '等待學員加入...' : '▶ 開始作答'}
-        </button>
+        <div className="flex flex-col gap-4">
+          {/* Answer type selector */}
+          <div>
+            <p style={{ fontSize: '11px', color: 'rgba(230,237,243,0.4)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+              題型選擇
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {([
+                { type: 'OX' as AnswerType, label: '○✕ 是非題' },
+                { type: 'choice' as AnswerType, label: '▲■★♥ 選擇題' },
+              ]).map(({ type, label }) => (
+                <button
+                  key={type}
+                  onClick={() => setSelectedType(type)}
+                  style={{
+                    padding: '10px 12px', borderRadius: '10px', fontSize: '14px',
+                    fontFamily: 'Syne, sans-serif', fontWeight: 600,
+                    background: selectedType === type ? 'rgba(0,245,212,0.12)' : 'rgba(255,255,255,0.04)',
+                    color: selectedType === type ? '#00f5d4' : 'rgba(230,237,243,0.5)',
+                    border: `1px solid ${selectedType === type ? 'rgba(0,245,212,0.3)' : 'rgba(255,255,255,0.1)'}`,
+                    cursor: 'pointer', transition: 'all 0.2s',
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={startAnswering}
+            disabled={loading || totalMembers === 0}
+            style={{
+              padding: '16px 32px', borderRadius: '12px', fontSize: '18px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              background: totalMembers === 0 ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #00f5d4, #06d6a0)',
+              color: totalMembers === 0 ? 'rgba(230,237,243,0.3)' : '#0d1117',
+              border: 'none', cursor: totalMembers === 0 ? 'not-allowed' : 'pointer',
+              transition: 'transform 0.15s, box-shadow 0.15s',
+              boxShadow: totalMembers > 0 ? '0 0 30px rgba(0, 245, 212, 0.3)' : 'none',
+            }}
+            onMouseEnter={e => { if (totalMembers > 0) (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.03)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)' }}
+          >
+            {totalMembers === 0 ? '等待學員加入...' : '▶ 開始作答'}
+          </button>
+        </div>
       )}
 
       {status === 'answering' && (
@@ -77,24 +112,25 @@ export default function ControlPanel({ roomId, status, answeredCount, totalMembe
           <p style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', textAlign: 'center', fontFamily: 'IBM Plex Mono, monospace' }}>
             選擇正確答案後結束
           </p>
-          <div className="flex gap-3">
-            {(['O', 'X'] as const).map(ans => (
+          <div className="grid grid-cols-2 gap-3">
+            {options.map(opt => (
               <button
-                key={ans}
-                onClick={() => setCorrectAnswer(ans)}
+                key={opt.key}
+                onClick={() => setCorrectAnswer(opt.key)}
                 style={{
-                  flex: 1, padding: '20px', borderRadius: '12px', fontSize: '36px',
+                  padding: options.length === 2 ? '20px' : '14px', borderRadius: '12px',
+                  fontSize: options.length === 2 ? '36px' : '28px',
                   fontFamily: 'Syne, sans-serif', fontWeight: 800,
-                  background: correctAnswer === ans
-                    ? (ans === 'O' ? 'rgba(6,214,160,0.2)' : 'rgba(239,71,111,0.2)')
-                    : 'rgba(255,255,255,0.04)',
-                  color: ans === 'O' ? '#06d6a0' : '#ef476f',
-                  border: `2px solid ${correctAnswer === ans ? (ans === 'O' ? '#06d6a0' : '#ef476f') : 'rgba(255,255,255,0.1)'}`,
+                  background: correctAnswer === opt.key ? `${opt.color}20` : 'rgba(255,255,255,0.04)',
+                  color: opt.color,
+                  border: `2px solid ${correctAnswer === opt.key ? opt.color : 'rgba(255,255,255,0.1)'}`,
                   cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: correctAnswer === ans ? `0 0 20px ${ans === 'O' ? 'rgba(6,214,160,0.3)' : 'rgba(239,71,111,0.3)'}` : 'none',
+                  boxShadow: correctAnswer === opt.key ? `0 0 20px ${opt.shadow}` : 'none',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 }}
               >
-                {ans === 'O' ? '○' : '✕'}
+                {opt.label}
+                {options.length > 2 && <span style={{ fontSize: '12px', fontWeight: 600 }}>{opt.name}</span>}
               </button>
             ))}
           </div>

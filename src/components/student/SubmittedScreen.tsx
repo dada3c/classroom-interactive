@@ -1,10 +1,15 @@
+import type { AnswerType } from '../../types'
+import { findOption } from '../../types'
+
 interface SubmittedScreenProps {
   answer: string
+  answerType: AnswerType
 }
 
-export default function SubmittedScreen({ answer }: SubmittedScreenProps) {
-  const isO = answer === 'O'
-  const color = isO ? '#06d6a0' : '#ef476f'
+export default function SubmittedScreen({ answer, answerType }: SubmittedScreenProps) {
+  const opt = findOption(answerType, answer)
+  const color = opt?.color ?? '#06d6a0'
+  const label = opt?.label ?? answer
 
   return (
     <div style={{ textAlign: 'center', padding: '48px 24px', animation: 'fadeUp 0.4s ease forwards' }}>
@@ -14,15 +19,16 @@ export default function SubmittedScreen({ answer }: SubmittedScreenProps) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         margin: '0 auto 24px', fontSize: '48px',
         boxShadow: `0 0 40px ${color}30`,
+        color,
       }}>
-        {isO ? '○' : '✕'}
+        {label}
       </div>
 
       <h2 style={{ fontSize: '24px', fontFamily: 'Syne, sans-serif', fontWeight: 800, marginBottom: '8px' }}>
         已送出答案！
       </h2>
       <p style={{ fontSize: '15px', color: 'rgba(230,237,243,0.5)', fontFamily: 'Syne, sans-serif', marginBottom: '32px' }}>
-        你選擇了 <span style={{ color, fontWeight: 700 }}>{isO ? '○' : '✕'}</span>
+        你選擇了 <span style={{ color, fontWeight: 700 }}>{opt?.name ?? label}</span>
       </p>
 
       <div style={{

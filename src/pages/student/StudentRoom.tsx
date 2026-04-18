@@ -51,7 +51,7 @@ export default function StudentRoom() {
     }
   }, [room?.status])
 
-  const submitAnswer = async (answer: 'O' | 'X') => {
+  const submitAnswer = async (answer: string) => {
     if (!roomId || !memberId) return
     setSubmitting(true)
     await setDoc(doc(answersCol(roomId), memberId), {
@@ -97,13 +97,14 @@ export default function StudentRoom() {
 
           <div className="p-6">
             {phase === 'waiting' && <WaitingScreen nickname={nickname} />}
-            {phase === 'answering' && <AnswerButtons onAnswer={submitAnswer} submitting={submitting} />}
-            {phase === 'submitted' && <SubmittedScreen answer={myAnswer!} />}
+            {phase === 'answering' && <AnswerButtons answerType={room.answerType} onAnswer={submitAnswer} submitting={submitting} />}
+            {phase === 'submitted' && <SubmittedScreen answer={myAnswer!} answerType={room.answerType} />}
             {phase === 'ended' && (
               <ResultScreen
                 myAnswer={myAnswer}
                 correctAnswer={room.correctAnswer}
                 stats={stats}
+                answerType={room.answerType}
               />
             )}
           </div>
