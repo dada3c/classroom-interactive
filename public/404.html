@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+      // Automatically redirect any 404 path back to the HashRouter pattern
+      // For example: /classroom-interactive/join/123 -> /classroom-interactive/#/join/123
+      var path = window.location.pathname;
+      var search = window.location.search;
+      var hash = window.location.hash;
+      
+      // We know this is hosted at /classroom-interactive/ (or root)
+      // Let's dynamically find the repo name by checking the first part of the path
+      var segments = path.split('/').filter(Boolean);
+      
+      // If deployed at dada3c.github.io/classroom-interactive, 
+      // segments[0] is "classroom-interactive"
+      var base = '/';
+      var routePath = path;
+      
+      if (segments.length > 0 && segments[0] === 'classroom-interactive') {
+        base = '/' + segments[0] + '/';
+        routePath = '/' + segments.slice(1).join('/');
+      }
+      
+      var newUrl = window.location.origin + base + '#' + routePath + search + hash;
+      window.location.replace(newUrl);
+    </script>
+  </head>
+  <body>
+    <!-- Fallback if JS is disabled -->
+    <p>Redirecting to the app...</p>
+    <a href="/classroom-interactive/">Click here to return to home</a>
+  </body>
+</html>
