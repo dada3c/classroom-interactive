@@ -18,41 +18,52 @@ export default function SessionReport({ rounds, members }: SessionReportProps) {
     )
   }
 
-  // Compute per-student accuracy
-  const studentStats: { nickname: string; correct: number; total: number; percent: number }[] = []
-  const studentMap = new Map<string, { nickname: string; correct: number; total: number }>()
+  // Compute per-student stats (correct / wrong / unanswered)
+  const studentStats: { nickname: string; correct: number; wrong: number; unanswered: number; total: number; percent: number }[] = []
+  const studentMap = new Map<string, { nickname: string; correct: number; wrong: number; unanswered: number; total: number }>()
 
   rounds.forEach(round => {
     Object.entries(round.answers).forEach(([memberId, data]) => {
-      const existing = studentMap.get(memberId) || { nickname: data.nickname, correct: 0, total: 0 }
+      const existing = studentMap.get(memberId) || { nickname: data.nickname, correct: 0, wrong: 0, unanswered: 0, total: 0 }
       existing.total++
-      if (data.correct) existing.correct++
+      if (data.answer === null || data.answer === undefined) {
+        existing.unanswered++
+      } else if (data.correct) {
+        existing.correct++
+      } else {
+        existing.wrong++
+      }
       existing.nickname = data.nickname
       studentMap.set(memberId, existing)
     })
   })
 
   studentMap.forEach((val) => {
-    studentStats.push({ ...val, percent: val.total > 0 ? Math.round((val.correct / val.total) * 100) : 0 })
+    const answered = val.correct + val.wrong
+    studentStats.push({ ...val, percent: answered > 0 ? Math.round((val.correct / answered) * 100) : 0 })
   })
   studentStats.sort((a, b) => b.percent - a.percent)
 
   // Overall stats
   const totalCorrect = studentStats.reduce((s, v) => s + v.correct, 0)
-  const totalAnswers = studentStats.reduce((s, v) => s + v.total, 0)
-  const overallPercent = totalAnswers > 0 ? Math.round((totalCorrect / totalAnswers) * 100) : 0
+  const totalWrong = studentStats.reduce((s, v) => s + v.wrong, 0)
+  const totalUnanswered = studentStats.reduce((s, v) => s + v.unanswered, 0)
+  const totalAnswered = totalCorrect + totalWrong
+  const overallPercent = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0
 
   // Per-round accuracy
   const roundAccuracy = rounds.map(r => {
     const entries = Object.values(r.answers)
-    const correct = entries.filter(a => a.correct).length
+    const answered = entries.filter(a => a.answer !== null && a.answer !== undefined)
+    const correct = answered.filter(a => a.correct).length
+    const unanswered = entries.length - answered.length
     return {
       name: `Q${r.roundNumber}`,
-      正確率: entries.length > 0 ? Math.round((correct / entries.length) * 100) : 0,
+      正確率: answered.length > 0 ? Math.round((correct / answered.length) * 100) : 0,
+      未作答: unanswered,
     }
   })
 
-  // Color by percent
   const getBarColor = (percent: number) => {
     if (percent >= 80) return '#06d6a0'
     if (percent >= 60) return '#ffd166'
@@ -62,7 +73,8 @@ export default function SessionReport({ rounds, members }: SessionReportProps) {
 
   const pieData = [
     { name: '正確', value: totalCorrect, color: '#06d6a0' },
-    { name: '錯誤', value: totalAnswers - totalCorrect, color: '#ef476f' },
+    { name: '錯誤', value: totalWrong, color: '#ef476f' },
+    { name: '未作答', value: totalUnanswered, color: '#555e6e' },
   ].filter(d => d.value > 0)
 
   return (
@@ -83,15 +95,24 @@ export default function SessionReport({ rounds, members }: SessionReportProps) {
               {overallPercent}%
             </p>
             <p style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.5)', marginTop: '8px' }}>
-              {totalCorrect} / {totalAnswers} 題答對 · {rounds.length} 題 · {studentStats.length} 人
+              {rounds.length} 題 · {studentStats.length} 人
             </p>
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '8px' }}>
+              <span style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: '#06d6a0' }}>✓ {totalCorrect}</span>
+              <span style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: '#ef476f' }}>✗ {totalWrong}</span>
+              {totalUnanswered > 0 && <span style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: '#555e6e' }}>— {totalUnanswered}</span>}
+            </div>
           </div>
-          <div style={{ width: '120px', height: '120px' }}>
+          <div style={{ width: '130px', height: '130px' }}>
             <ResponsiveContainer>
               <PieChart>
-                <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={55} innerRadius={35} isAnimationActive animationDuration={800}>
+                <Pie data={pieData} dataKey="value" cx="50%" cy="50%" outerRadius={58} innerRadius={38} isAnimationActive animationDuration={800}>
                   {pieData.map(d => <Cell key={d.name} fill={d.color} />)}
                 </Pie>
+                <Tooltip
+                  contentStyle={{ background: '#1a1f2e', border: '1px solid rgba(0,245,212,0.2)', borderRadius: '8px', color: '#e6edf3', fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px' }}
+                  formatter={(v) => [`${v} 次`, '']}
+                />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -108,7 +129,7 @@ export default function SessionReport({ rounds, members }: SessionReportProps) {
             <BarChart data={roundAccuracy} margin={{ left: -20 }}>
               <XAxis dataKey="name" tick={{ fill: 'rgba(230,237,243,0.5)', fontSize: 12, fontFamily: 'IBM Plex Mono, monospace' }} axisLine={false} tickLine={false} />
               <YAxis domain={[0, 100]} tick={{ fill: 'rgba(230,237,243,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: '#1a1f2e', border: '1px solid rgba(0,245,212,0.2)', borderRadius: '8px', color: '#e6edf3', fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px' }} formatter={(v) => [`${v}%`, '正確率']} />
+              <Tooltip contentStyle={{ background: '#1a1f2e', border: '1px solid rgba(0,245,212,0.2)', borderRadius: '8px', color: '#e6edf3', fontFamily: 'IBM Plex Mono, monospace', fontSize: '12px' }} formatter={(v, name) => [name === '未作答' ? `${v} 人` : `${v}%`, name]} />
               <Bar dataKey="正確率" radius={[6, 6, 0, 0]} isAnimationActive animationDuration={800}>
                 {roundAccuracy.map((entry, i) => <Cell key={i} fill={getBarColor(entry['正確率'])} />)}
               </Bar>
@@ -151,8 +172,8 @@ export default function SessionReport({ rounds, members }: SessionReportProps) {
               }}>
                 {s.percent}%
               </span>
-              <span style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.3)', minWidth: '40px' }}>
-                {s.correct}/{s.total}
+              <span style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.3)', minWidth: '65px', textAlign: 'right' }}>
+                {s.correct}✓ {s.wrong}✗{s.unanswered > 0 ? ` ${s.unanswered}—` : ''}
               </span>
             </div>
           ))}

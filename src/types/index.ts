@@ -64,5 +64,5 @@ export interface RoundResult {
   roundNumber: number
   answerType: AnswerType
   correctAnswer: string
-  answers: Record<string, { answer: string; nickname: string; correct: boolean }>
+  answers: Record<string, { answer: string | null; nickname: string; correct: boolean }>
 }

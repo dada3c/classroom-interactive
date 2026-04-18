@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { doc, setDoc, updateDoc, getDocs, serverTimestamp } from 'firebase/firestore'
-import { db, answersCol, roundsCol } from '../../lib/firebase'
+import { db, answersCol, roundsCol, membersCol } from '../../lib/firebase'
 import type { RoomStatus, AnswerType } from '../../types'
 import { getOptionsForType } from '../../types'
 import AnimatedCounter from '../ui/AnimatedCounter'
@@ -35,15 +35,36 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
     if (!correctAnswer) return
     setLoading(true)
 
-    // Save round result to history
-    const answersSnap = await getDocs(answersCol(roomId))
-    const answers: Record<string, { answer: string; nickname: string; correct: boolean }> = {}
+    // Fetch all answers AND all members to detect unanswered
+    const [answersSnap, membersSnap] = await Promise.all([
+      getDocs(answersCol(roomId)),
+      getDocs(membersCol(roomId)),
+    ])
+
+    const answeredMap = new Map<string, { answer: string; nickname: string }>()
     answersSnap.docs.forEach(d => {
       const data = d.data() as { answer: string; nickname: string }
-      answers[d.id] = {
-        answer: data.answer,
-        nickname: data.nickname,
-        correct: data.answer === correctAnswer,
+      answeredMap.set(d.id, data)
+    })
+
+    // Build answers record: include ALL members
+    const answers: Record<string, { answer: string | null; nickname: string; correct: boolean }> = {}
+    membersSnap.docs.forEach(d => {
+      const memberData = d.data() as { nickname: string }
+      const submitted = answeredMap.get(d.id)
+      if (submitted) {
+        answers[d.id] = {
+          answer: submitted.answer,
+          nickname: submitted.nickname,
+          correct: submitted.answer === correctAnswer,
+        }
+      } else {
+        // Unanswered
+        answers[d.id] = {
+          answer: null,
+          nickname: memberData.nickname,
+          correct: false,
+        }
       }
     })
 
@@ -221,11 +242,12 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
             onClick={finishSession}
             disabled={loading}
             style={{
-              padding: '12px 24px', borderRadius: '12px', fontSize: '14px',
-              fontFamily: 'Syne, sans-serif', fontWeight: 600,
-              background: 'rgba(239,71,111,0.1)', color: '#ef476f',
-              border: '1px solid rgba(239,71,111,0.3)', cursor: 'pointer',
+              padding: '14px 24px', borderRadius: '12px', fontSize: '16px',
+              fontFamily: 'Syne, sans-serif', fontWeight: 700,
+              background: 'linear-gradient(135deg, #ef476f, #c0392b)', color: 'white',
+              border: 'none', cursor: 'pointer',
               transition: 'all 0.2s',
+              boxShadow: '0 0 20px rgba(239,71,111,0.3)',
             }}
           >
             🏁 結束考題（查看總報表）

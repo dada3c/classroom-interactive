@@ -16,24 +16,26 @@ export default function StudentScoreCard({ memberId, nickname, rounds }: Student
   }
 
   let correct = 0
-  let total = 0
-  const details: { round: number; myAnswer: string; correctAnswer: string; isCorrect: boolean }[] = []
+  let wrong = 0
+  let unanswered = 0
+  const details: { round: number; status: 'correct' | 'wrong' | 'unanswered' }[] = []
 
   rounds.forEach(r => {
     const mine = r.answers[memberId]
-    if (mine) {
-      total++
-      if (mine.correct) correct++
-      details.push({
-        round: r.roundNumber,
-        myAnswer: mine.answer,
-        correctAnswer: r.correctAnswer,
-        isCorrect: mine.correct,
-      })
+    if (!mine || mine.answer === null || mine.answer === undefined) {
+      unanswered++
+      details.push({ round: r.roundNumber, status: 'unanswered' })
+    } else if (mine.correct) {
+      correct++
+      details.push({ round: r.roundNumber, status: 'correct' })
+    } else {
+      wrong++
+      details.push({ round: r.roundNumber, status: 'wrong' })
     }
   })
 
-  const percent = total > 0 ? Math.round((correct / total) * 100) : 0
+  const answered = correct + wrong
+  const percent = answered > 0 ? Math.round((correct / answered) * 100) : 0
 
   const getColor = (p: number) => {
     if (p >= 80) return '#06d6a0'
@@ -44,11 +46,17 @@ export default function StudentScoreCard({ memberId, nickname, rounds }: Student
   const color = getColor(percent)
 
   const getEmoji = (p: number) => {
-    if (p === 100) return '🏆'
+    if (p === 100 && answered > 0) return '🏆'
     if (p >= 80) return '🎉'
     if (p >= 60) return '👍'
     if (p >= 40) return '💪'
     return '📚'
+  }
+
+  const statusConfig = {
+    correct:    { color: '#06d6a0', bg: 'rgba(6,214,160,0.15)',   border: 'rgba(6,214,160,0.4)',   icon: '✓' },
+    wrong:      { color: '#ef476f', bg: 'rgba(239,71,111,0.15)',  border: 'rgba(239,71,111,0.4)',  icon: '✗' },
+    unanswered: { color: '#555e6e', bg: 'rgba(85,94,110,0.15)',   border: 'rgba(85,94,110,0.4)',   icon: '—' },
   }
 
   return (
@@ -63,7 +71,7 @@ export default function StudentScoreCard({ memberId, nickname, rounds }: Student
 
       {/* Score circle */}
       <div style={{
-        width: '140px', height: '140px', borderRadius: '50%', margin: '0 auto 24px',
+        width: '140px', height: '140px', borderRadius: '50%', margin: '0 auto 16px',
         background: `${color}12`, border: `4px solid ${color}`,
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         boxShadow: `0 0 40px ${color}30`,
@@ -72,27 +80,36 @@ export default function StudentScoreCard({ memberId, nickname, rounds }: Student
           {percent}%
         </span>
         <span style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.5)' }}>
-          {correct}/{total}
+          {correct}/{answered}
         </span>
+      </div>
+
+      {/* Stats summary */}
+      <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '20px' }}>
+        <span style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: '#06d6a0' }}>✓ 正確 {correct}</span>
+        <span style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: '#ef476f' }}>✗ 錯誤 {wrong}</span>
+        {unanswered > 0 && <span style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: '#555e6e' }}>— 未作答 {unanswered}</span>}
       </div>
 
       {/* Per-question result */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
-        {details.map(d => (
-          <div key={d.round} style={{
-            width: '40px', height: '40px', borderRadius: '10px',
-            background: d.isCorrect ? 'rgba(6,214,160,0.15)' : 'rgba(239,71,111,0.15)',
-            border: `2px solid ${d.isCorrect ? 'rgba(6,214,160,0.4)' : 'rgba(239,71,111,0.4)'}`,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <span style={{ fontSize: '9px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)' }}>
-              Q{d.round}
-            </span>
-            <span style={{ fontSize: '14px', color: d.isCorrect ? '#06d6a0' : '#ef476f' }}>
-              {d.isCorrect ? '✓' : '✗'}
-            </span>
-          </div>
-        ))}
+        {details.map(d => {
+          const cfg = statusConfig[d.status]
+          return (
+            <div key={d.round} style={{
+              width: '40px', height: '40px', borderRadius: '10px',
+              background: cfg.bg, border: `2px solid ${cfg.border}`,
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <span style={{ fontSize: '9px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)' }}>
+                Q{d.round}
+              </span>
+              <span style={{ fontSize: '14px', color: cfg.color }}>
+                {cfg.icon}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
