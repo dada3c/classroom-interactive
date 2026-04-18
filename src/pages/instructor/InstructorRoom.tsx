@@ -49,7 +49,7 @@ export default function InstructorRoom() {
             <RoomHeader roomId={room.id} status={room.status} />
           </GlassCard>
 
-          <SessionReport rounds={rounds} members={members} />
+          <SessionReport rounds={rounds} />
         </div>
       </div>
     )

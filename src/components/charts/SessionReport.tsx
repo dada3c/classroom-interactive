@@ -1,13 +1,12 @@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, PieChart, Pie } from 'recharts'
-import type { RoundResult, Member } from '../../types'
+import type { RoundResult } from '../../types'
 import GlassCard from '../ui/GlassCard'
 
 interface SessionReportProps {
   rounds: RoundResult[]
-  members: Member[]
 }
 
-export default function SessionReport({ rounds, members }: SessionReportProps) {
+export default function SessionReport({ rounds }: SessionReportProps) {
   if (rounds.length === 0) {
     return (
       <GlassCard className="p-8 text-center">
