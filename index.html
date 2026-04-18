@@ -4,7 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>classroom-interactive</title>
+    <title>Classroom Interactive</title>
+    <script>
+      // Restore path from 404.html redirect
+      (function() {
+        var p = window.location.search.slice(1).split('&').filter(function(s){ return s.startsWith('p=/') });
+        if (p.length > 0) {
+          var path = p[0].slice(3).replace(/~and~/g, '&');
+          var rest = window.location.search.slice(1).split('&').filter(function(s){ return !s.startsWith('p=/') && !s.startsWith('q=') });
+          var q = window.location.search.slice(1).split('&').filter(function(s){ return s.startsWith('q=') });
+          window.history.replaceState(null, null,
+            window.location.pathname.slice(0, -1) + (path || '/') +
+            (rest.length > 0 ? '?' + rest.join('&') : '') +
+            (q.length > 0 ? '?' + q[0].slice(2).replace(/~and~/g, '&') : '') +
+            window.location.hash
+          );
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
