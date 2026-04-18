@@ -1,7 +1,20 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [showRoomInput, setShowRoomInput] = useState(false)
+  const [roomCode, setRoomCode] = useState('')
+  const [roomError, setRoomError] = useState('')
+
+  const handleStudentSubmit = () => {
+    const code = roomCode.trim()
+    if (code.length !== 6 || !/^\d+$/.test(code)) {
+      setRoomError('請輸入 6 位數房間號碼')
+      return
+    }
+    navigate(`/join/${code}`)
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative', zIndex: 1 }}>
@@ -17,8 +30,9 @@ export default function Landing() {
         </h1>
       </div>
 
-      {/* Role cards */}
+      {/* Role cards / Room input */}
       <div style={{ display: 'flex', gap: '24px', width: '100%', maxWidth: '680px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {/* Instructor card - always visible */}
         <RoleCard
           role="instructor"
           title="講師"
@@ -31,18 +45,88 @@ export default function Landing() {
           delay="0.2s"
           onClick={() => navigate('/instructor')}
         />
-        <RoleCard
-          role="student"
-          title="學員"
-          subtitle="Student"
-          desc="掃描 QR Code 加入課程，即時作答互動"
-          icon="📱"
-          accentColor="#00f5d4"
-          borderColor="rgba(0,245,212,0.2)"
-          glowColor="rgba(0,245,212,0.1)"
-          delay="0.35s"
-          onClick={() => navigate('/join/000000')}
-        />
+
+        {/* Student card or Room code input */}
+        {!showRoomInput ? (
+          <RoleCard
+            role="student"
+            title="學員"
+            subtitle="Student"
+            desc="輸入房間號碼加入課程，即時作答互動"
+            icon="📱"
+            accentColor="#00f5d4"
+            borderColor="rgba(0,245,212,0.2)"
+            glowColor="rgba(0,245,212,0.1)"
+            delay="0.35s"
+            onClick={() => setShowRoomInput(true)}
+          />
+        ) : (
+          <div
+            style={{
+              flex: '1 1 260px', minHeight: '280px', borderRadius: '24px', padding: '36px 28px',
+              background: 'rgba(0,245,212,0.06)', backdropFilter: 'blur(12px)',
+              border: '1px solid rgba(0,245,212,0.25)',
+              display: 'flex', flexDirection: 'column', gap: '16px',
+              animation: 'fadeUp 0.4s ease forwards',
+            }}
+          >
+            <button
+              onClick={() => { setShowRoomInput(false); setRoomCode(''); setRoomError('') }}
+              style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
+            >
+              ← 返回
+            </button>
+
+            <span style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: '#00f5d4', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+              Student
+            </span>
+            <div style={{ fontSize: '48px' }}>📱</div>
+            <h2 style={{ fontSize: '24px', fontFamily: 'Syne, sans-serif', fontWeight: 800, color: '#00f5d4' }}>
+              輸入房間號碼
+            </h2>
+
+            <input
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              value={roomCode}
+              onChange={e => { setRoomCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setRoomError('') }}
+              onKeyDown={e => { if (e.key === 'Enter') handleStudentSubmit() }}
+              placeholder="6 位數房號"
+              autoFocus
+              style={{
+                padding: '14px', borderRadius: '12px', fontSize: '28px',
+                fontFamily: 'IBM Plex Mono, monospace', fontWeight: 700,
+                textAlign: 'center', letterSpacing: '0.2em',
+                background: roomError ? 'rgba(239,71,111,0.1)' : 'rgba(255,255,255,0.06)',
+                color: '#e6edf3',
+                border: `2px solid ${roomError ? '#ef476f' : 'rgba(0,245,212,0.2)'}`,
+                outline: 'none', transition: 'all 0.3s', width: '100%',
+              }}
+            />
+
+            {roomError && (
+              <p style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: '#ef476f' }}>
+                {roomError}
+              </p>
+            )}
+
+            <button
+              onClick={handleStudentSubmit}
+              disabled={roomCode.length !== 6}
+              style={{
+                padding: '14px', borderRadius: '12px', fontSize: '16px',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                background: roomCode.length === 6 ? 'linear-gradient(135deg, #00f5d4, #06d6a0)' : 'rgba(255,255,255,0.05)',
+                color: roomCode.length === 6 ? '#0d1117' : 'rgba(230,237,243,0.3)',
+                border: 'none', cursor: roomCode.length === 6 ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s', marginTop: 'auto',
+              }}
+            >
+              加入課程 →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

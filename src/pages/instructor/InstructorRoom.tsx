@@ -8,6 +8,7 @@ import MemberList from '../../components/instructor/MemberList'
 import ControlPanel from '../../components/instructor/ControlPanel'
 import QRDisplay from '../../components/qr/QRDisplay'
 import AnswerChart from '../../components/charts/AnswerChart'
+import NicknameCloud from '../../components/ui/NicknameCloud'
 
 export default function InstructorRoom() {
   const { roomId } = useParams<{ roomId: string }>()
@@ -44,6 +45,16 @@ export default function InstructorRoom() {
         <GlassCard className="p-6 mb-6">
           <RoomHeader roomId={room.id} status={room.status} />
         </GlassCard>
+
+        {/* Nickname word cloud when waiting */}
+        {room.status === 'waiting' && members.length > 0 && (
+          <GlassCard className="p-6 mb-6">
+            <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px', textAlign: 'center' }}>
+              已加入的學員
+            </h3>
+            <NicknameCloud members={members} size="lg" />
+          </GlassCard>
+        )}
 
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">

@@ -4,6 +4,7 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore'
 import { answersCol } from '../../lib/firebase'
 import { useRoom } from '../../hooks/useRoom'
 import { useAnswers } from '../../hooks/useAnswers'
+import { useMembers } from '../../hooks/useMembers'
 import GlassCard from '../../components/ui/GlassCard'
 import WaitingScreen from '../../components/student/WaitingScreen'
 import AnswerButtons from '../../components/student/AnswerButtons'
@@ -15,6 +16,7 @@ export default function StudentRoom() {
   const navigate    = useNavigate()
   const { room, loading } = useRoom(roomId)
   const { stats }         = useAnswers(roomId)
+  const { members }       = useMembers(roomId)
 
   const [memberId, setMemberId]     = useState<string | null>(null)
   const [nickname, setNickname]     = useState<string>('')
@@ -96,7 +98,7 @@ export default function StudentRoom() {
           </div>
 
           <div className="p-6">
-            {phase === 'waiting' && <WaitingScreen nickname={nickname} />}
+            {phase === 'waiting' && <WaitingScreen nickname={nickname} members={members} />}
             {phase === 'answering' && <AnswerButtons answerType={room.answerType} onAnswer={submitAnswer} submitting={submitting} />}
             {phase === 'submitted' && <SubmittedScreen answer={myAnswer!} answerType={room.answerType} />}
             {phase === 'ended' && (

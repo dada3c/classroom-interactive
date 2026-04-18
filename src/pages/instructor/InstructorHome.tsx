@@ -5,11 +5,28 @@ import { db } from '../../lib/firebase'
 import { generateRoomId } from '../../utils/generateRoomId'
 import GlassCard from '../../components/ui/GlassCard'
 
+const INSTRUCTOR_PIN = '0935'
+
 export default function InstructorHome() {
   const navigate = useNavigate()
   const [creating, setCreating] = useState(false)
-
   const [error, setError] = useState('')
+
+  // Password lock
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('instructor-unlocked') === 'true')
+  const [pin, setPin] = useState('')
+  const [pinError, setPinError] = useState(false)
+
+  const handleUnlock = () => {
+    if (pin === INSTRUCTOR_PIN) {
+      sessionStorage.setItem('instructor-unlocked', 'true')
+      setUnlocked(true)
+    } else {
+      setPinError(true)
+      setPin('')
+      setTimeout(() => setPinError(false), 1500)
+    }
+  }
 
   const createRoom = async () => {
     setCreating(true)
@@ -29,6 +46,72 @@ export default function InstructorHome() {
       setError('建立失敗，請重試')
       setCreating(false)
     }
+  }
+
+  // PIN Screen
+  if (!unlocked) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative', zIndex: 1 }}>
+        <div style={{ width: '100%', maxWidth: '400px', animation: 'fadeUp 0.5s ease forwards' }}>
+          <div style={{ marginBottom: '40px', textAlign: 'center' }}>
+            <button onClick={() => navigate('/')} style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)', background: 'none', border: 'none', cursor: 'pointer', marginBottom: '24px', display: 'block', margin: '0 auto 24px' }}>
+              ← 返回
+            </button>
+            <p style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</p>
+            <h1 style={{ fontSize: '28px', fontFamily: 'Syne, sans-serif', fontWeight: 800 }}>
+              講師驗證
+            </h1>
+          </div>
+
+          <GlassCard variant="amber" className="p-8">
+            <p style={{ fontSize: '14px', color: 'rgba(230,237,243,0.5)', fontFamily: 'Syne, sans-serif', textAlign: 'center', marginBottom: '24px' }}>
+              請輸入講師密碼
+            </p>
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+              <input
+                type="password"
+                inputMode="numeric"
+                maxLength={4}
+                value={pin}
+                onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                onKeyDown={e => { if (e.key === 'Enter') handleUnlock() }}
+                placeholder="••••"
+                autoFocus
+                style={{
+                  flex: 1, padding: '16px', borderRadius: '12px', fontSize: '28px',
+                  fontFamily: 'IBM Plex Mono, monospace', fontWeight: 700,
+                  textAlign: 'center', letterSpacing: '0.3em',
+                  background: pinError ? 'rgba(239,71,111,0.1)' : 'rgba(255,255,255,0.06)',
+                  color: '#e6edf3',
+                  border: `2px solid ${pinError ? '#ef476f' : 'rgba(255,255,255,0.1)'}`,
+                  outline: 'none',
+                  transition: 'all 0.3s',
+                }}
+              />
+            </div>
+            {pinError && (
+              <p style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: '#ef476f', textAlign: 'center', marginBottom: '12px', animation: 'fadeUp 0.3s ease' }}>
+                密碼錯誤，請重新輸入
+              </p>
+            )}
+            <button
+              onClick={handleUnlock}
+              disabled={pin.length !== 4}
+              style={{
+                width: '100%', padding: '14px', borderRadius: '12px', fontSize: '16px',
+                fontFamily: 'Syne, sans-serif', fontWeight: 700,
+                background: pin.length === 4 ? 'linear-gradient(135deg, #ffd166, #f4a261)' : 'rgba(255,255,255,0.05)',
+                color: pin.length === 4 ? '#0d1117' : 'rgba(230,237,243,0.3)',
+                border: 'none', cursor: pin.length === 4 ? 'pointer' : 'not-allowed',
+                transition: 'all 0.2s',
+              }}
+            >
+              解鎖
+            </button>
+          </GlassCard>
+        </div>
+      </div>
+    )
   }
 
   return (

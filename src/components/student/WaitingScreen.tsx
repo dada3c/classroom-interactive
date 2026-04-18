@@ -1,11 +1,15 @@
+import type { Member } from '../../types'
+import NicknameCloud from '../ui/NicknameCloud'
+
 interface WaitingScreenProps {
   nickname: string
+  members: Member[]
 }
 
-export default function WaitingScreen({ nickname }: WaitingScreenProps) {
+export default function WaitingScreen({ nickname, members }: WaitingScreenProps) {
   return (
-    <div style={{ textAlign: 'center', padding: '48px 24px', animation: 'fadeUp 0.5s ease forwards' }}>
-      <div style={{ marginBottom: '32px' }}>
+    <div style={{ textAlign: 'center', padding: '32px 24px', animation: 'fadeUp 0.5s ease forwards' }}>
+      <div style={{ marginBottom: '24px' }}>
         <div style={{
           width: '80px', height: '80px', borderRadius: '50%',
           background: 'linear-gradient(135deg, rgba(0,245,212,0.2), rgba(6,214,160,0.1))',
@@ -22,6 +26,19 @@ export default function WaitingScreen({ nickname }: WaitingScreenProps) {
           已成功加入課程
         </p>
       </div>
+
+      {/* Nickname word cloud */}
+      {members.length > 0 && (
+        <div style={{
+          padding: '16px', borderRadius: '16px', marginBottom: '20px',
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <p style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            目前已加入 {members.length} 人
+          </p>
+          <NicknameCloud members={members} size="sm" />
+        </div>
+      )}
 
       <div style={{
         padding: '24px', borderRadius: '16px',
