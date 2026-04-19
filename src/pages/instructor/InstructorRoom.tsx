@@ -111,9 +111,25 @@ export default function InstructorRoom() {
 
             {room.answerType === 'survey' && (room.status === 'answering' || room.status === 'ended') && (
               <GlassCard className="p-6">
-                <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
-                  即時回應（{answers.length}）
-                </h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                    即時回應（{answers.length}）
+                  </h3>
+                  <button
+                    onClick={() => window.open(`${window.location.href.split('#')[0]}#/cloud/${room.id}`, '_blank', 'width=1200,height=700')}
+                    style={{
+                      padding: '6px 14px', borderRadius: '8px', fontSize: '12px',
+                      fontFamily: 'IBM Plex Mono, monospace',
+                      background: 'rgba(0,245,212,0.08)', color: '#00f5d4',
+                      border: '1px solid rgba(0,245,212,0.25)', cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,245,212,0.16)' }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,245,212,0.08)' }}
+                  >
+                    ↗ 開新視窗
+                  </button>
+                </div>
                 <ResponseCloud responses={answers.map(a => ({ text: a.answer, nickname: a.nickname }))} />
               </GlassCard>
             )}

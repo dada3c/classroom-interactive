@@ -7,6 +7,7 @@ import InstructorRoom from './pages/instructor/InstructorRoom'
 import InstructorHistory from './pages/instructor/InstructorHistory'
 import JoinRoom from './pages/student/JoinRoom'
 import StudentRoom from './pages/student/StudentRoom'
+import CloudView from './pages/CloudView'
 
 class ErrorBoundary extends Component<{ children: ReactNode }, { error: string | null }> {
   state = { error: null }
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/instructor/:roomId"     element={<InstructorRoom />} />
             <Route path="/join/:roomId"           element={<JoinRoom />} />
             <Route path="/student/:roomId"        element={<StudentRoom />} />
+            <Route path="/cloud/:roomId"          element={<CloudView />} />
             <Route path="*"                       element={<Navigate to="/" replace />} />
           </Routes>
         </div>
