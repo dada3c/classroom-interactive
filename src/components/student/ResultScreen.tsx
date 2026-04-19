@@ -9,6 +9,25 @@ interface ResultScreenProps {
 }
 
 export default function ResultScreen({ myAnswer, correctAnswer, stats, answerType }: ResultScreenProps) {
+  if (answerType === 'survey') {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 24px', animation: 'fadeUp 0.4s ease forwards' }}>
+        <p style={{ fontSize: '48px', marginBottom: '12px' }}>💬</p>
+        <h2 style={{ fontSize: '22px', fontFamily: 'Syne, sans-serif', fontWeight: 800, marginBottom: '8px' }}>
+          感謝你的回應！
+        </h2>
+        {myAnswer && (
+          <p style={{ fontSize: '15px', color: 'rgba(230,237,243,0.6)', fontFamily: 'Syne, sans-serif', marginBottom: '20px' }}>
+            你的回應：<span style={{ color: '#00f5d4', fontWeight: 700 }}>{myAnswer}</span>
+          </p>
+        )}
+        <p style={{ fontSize: '12px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(230,237,243,0.35)' }}>
+          共 {stats.total} 人回應
+        </p>
+      </div>
+    )
+  }
+
   const isCorrect = myAnswer && correctAnswer && myAnswer === correctAnswer
   const didAnswer = !!myAnswer
   const options = getOptionsForType(answerType)

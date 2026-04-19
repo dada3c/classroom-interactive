@@ -10,6 +10,7 @@ import ControlPanel from '../../components/instructor/ControlPanel'
 import QRDisplay from '../../components/qr/QRDisplay'
 import AnswerChart from '../../components/charts/AnswerChart'
 import NicknameCloud from '../../components/ui/NicknameCloud'
+import ResponseCloud from '../../components/ui/ResponseCloud'
 import SessionReport from '../../components/charts/SessionReport'
 
 export default function InstructorRoom() {
@@ -17,7 +18,7 @@ export default function InstructorRoom() {
   const navigate   = useNavigate()
   const { room, loading, error } = useRoom(roomId)
   const { members }              = useMembers(roomId)
-  const { stats }                = useAnswers(roomId)
+  const { stats, answers }       = useAnswers(roomId)
   const { rounds }               = useRounds(roomId)
 
   if (loading) return <LoadingScreen />
@@ -108,7 +109,16 @@ export default function InstructorRoom() {
               />
             </GlassCard>
 
-            {room.status === 'ended' && (
+            {room.answerType === 'survey' && (room.status === 'answering' || room.status === 'ended') && (
+              <GlassCard className="p-6">
+                <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
+                  即時回應（{answers.length}）
+                </h3>
+                <ResponseCloud responses={answers.map(a => ({ text: a.answer, nickname: a.nickname }))} />
+              </GlassCard>
+            )}
+
+            {room.answerType !== 'survey' && room.status === 'ended' && (
               <GlassCard className="p-6">
                 <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
                   答題統計

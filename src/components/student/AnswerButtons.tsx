@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { AnswerType } from '../../types'
 import { getOptionsForType } from '../../types'
 
@@ -7,7 +8,13 @@ interface AnswerButtonsProps {
   submitting: boolean
 }
 
+const MAX_LEN = 60
+
 export default function AnswerButtons({ answerType, onAnswer, submitting }: AnswerButtonsProps) {
+  if (answerType === 'survey') {
+    return <SurveyInput onAnswer={onAnswer} submitting={submitting} />
+  }
+
   const options = getOptionsForType(answerType)
 
   return (
@@ -66,6 +73,68 @@ export default function AnswerButtons({ answerType, onAnswer, submitting }: Answ
           </button>
         ))}
       </div>
+    </div>
+  )
+}
+
+function SurveyInput({ onAnswer, submitting }: { onAnswer: (answer: string) => void; submitting: boolean }) {
+  const [text, setText] = useState('')
+  const trimmed = text.trim()
+  const canSubmit = trimmed.length > 0 && trimmed.length <= MAX_LEN && !submitting
+
+  const submit = () => {
+    if (!canSubmit) return
+    onAnswer(trimmed)
+  }
+
+  return (
+    <div style={{ textAlign: 'center', animation: 'fadeUp 0.4s ease forwards' }}>
+      <p style={{ fontSize: '14px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(0,245,212,0.7)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '20px' }}>
+        ▶ 開放問答
+      </p>
+      <p style={{ fontSize: '16px', fontFamily: 'Syne, sans-serif', fontWeight: 600, marginBottom: '24px', color: 'rgba(230,237,243,0.8)' }}>
+        輸入你的回應
+      </p>
+
+      <textarea
+        value={text}
+        onChange={e => setText(e.target.value.slice(0, MAX_LEN))}
+        onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } }}
+        placeholder="輸入你的想法..."
+        autoFocus
+        rows={3}
+        style={{
+          width: '100%', padding: '16px', borderRadius: '14px',
+          fontSize: '18px', fontFamily: 'Syne, sans-serif', fontWeight: 500,
+          background: 'rgba(255,255,255,0.06)', color: '#e6edf3',
+          border: '2px solid rgba(0,245,212,0.25)',
+          outline: 'none', resize: 'none',
+          textAlign: 'center', lineHeight: 1.5,
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+        }}
+        onFocus={e => { e.currentTarget.style.borderColor = 'rgba(0,245,212,0.6)'; e.currentTarget.style.boxShadow = '0 0 24px rgba(0,245,212,0.15)' }}
+        onBlur={e => { e.currentTarget.style.borderColor = 'rgba(0,245,212,0.25)'; e.currentTarget.style.boxShadow = 'none' }}
+      />
+      <p style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: text.length >= MAX_LEN ? '#ef476f' : 'rgba(230,237,243,0.35)', textAlign: 'right', marginTop: '6px' }}>
+        {text.length} / {MAX_LEN}
+      </p>
+
+      <button
+        onClick={submit}
+        disabled={!canSubmit}
+        style={{
+          width: '100%', marginTop: '20px', padding: '16px',
+          borderRadius: '14px', fontSize: '17px',
+          fontFamily: 'Syne, sans-serif', fontWeight: 700,
+          background: canSubmit ? 'linear-gradient(135deg, #00f5d4, #06d6a0)' : 'rgba(255,255,255,0.05)',
+          color: canSubmit ? '#0d1117' : 'rgba(230,237,243,0.3)',
+          border: 'none', cursor: canSubmit ? 'pointer' : 'not-allowed',
+          boxShadow: canSubmit ? '0 0 24px rgba(0,245,212,0.3)' : 'none',
+          transition: 'all 0.2s',
+        }}
+      >
+        {submitting ? '送出中...' : '送出回應'}
+      </button>
     </div>
   )
 }

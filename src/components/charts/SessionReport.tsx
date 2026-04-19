@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, PieChart, Pie } from 'recharts'
 import type { RoundResult } from '../../types'
 import GlassCard from '../ui/GlassCard'
+import ResponseCloud from '../ui/ResponseCloud'
 
 interface SessionReportProps {
   rounds: RoundResult[]
@@ -17,11 +18,14 @@ export default function SessionReport({ rounds }: SessionReportProps) {
     )
   }
 
+  const gradedRounds = rounds.filter(r => r.answerType !== 'survey')
+  const surveyRounds = rounds.filter(r => r.answerType === 'survey')
+
   // Compute per-student stats (correct / wrong / unanswered)
   const studentStats: { nickname: string; correct: number; wrong: number; unanswered: number; total: number; percent: number }[] = []
   const studentMap = new Map<string, { nickname: string; correct: number; wrong: number; unanswered: number; total: number }>()
 
-  rounds.forEach(round => {
+  gradedRounds.forEach(round => {
     Object.entries(round.answers).forEach(([memberId, data]) => {
       const existing = studentMap.get(memberId) || { nickname: data.nickname, correct: 0, wrong: 0, unanswered: 0, total: 0 }
       existing.total++
@@ -50,8 +54,8 @@ export default function SessionReport({ rounds }: SessionReportProps) {
   const totalAnswered = totalCorrect + totalWrong
   const overallPercent = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0
 
-  // Per-round accuracy
-  const roundAccuracy = rounds.map(r => {
+  // Per-round accuracy (graded only)
+  const roundAccuracy = gradedRounds.map(r => {
     const entries = Object.values(r.answers)
     const answered = entries.filter(a => a.answer !== null && a.answer !== undefined)
     const correct = answered.filter(a => a.correct).length
@@ -79,6 +83,7 @@ export default function SessionReport({ rounds }: SessionReportProps) {
   return (
     <div className="flex flex-col gap-6" style={{ animation: 'fadeUp 0.5s ease forwards' }}>
       {/* Overall accuracy card */}
+      {gradedRounds.length > 0 && (
       <GlassCard className="p-6">
         <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '20px', textAlign: 'center' }}>
           全班總正確率
@@ -117,9 +122,10 @@ export default function SessionReport({ rounds }: SessionReportProps) {
           </div>
         </div>
       </GlassCard>
+      )}
 
       {/* Per-round accuracy chart */}
-      {rounds.length > 1 && (
+      {gradedRounds.length > 1 && (
         <GlassCard className="p-6">
           <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
             每題正確率
@@ -137,7 +143,21 @@ export default function SessionReport({ rounds }: SessionReportProps) {
         </GlassCard>
       )}
 
+      {/* Survey responses */}
+      {surveyRounds.map(r => {
+        const entries = Object.values(r.answers).filter(a => a.answer)
+        return (
+          <GlassCard key={r.roundNumber} className="p-6">
+            <h3 style={{ fontSize: '13px', color: 'rgba(0,245,212,0.7)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
+              💬 Q{r.roundNumber} 問卷回應（{entries.length}）
+            </h3>
+            <ResponseCloud responses={entries.map(a => ({ text: a.answer!, nickname: a.nickname }))} />
+          </GlassCard>
+        )
+      })}
+
       {/* Per-student accuracy chart */}
+      {gradedRounds.length > 0 && (
       <GlassCard className="p-6">
         <h3 style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '16px' }}>
           每位學員正確率
@@ -178,6 +198,7 @@ export default function SessionReport({ rounds }: SessionReportProps) {
           ))}
         </div>
       </GlassCard>
+      )}
     </div>
   )
 }

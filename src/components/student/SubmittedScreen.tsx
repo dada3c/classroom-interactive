@@ -7,9 +7,10 @@ interface SubmittedScreenProps {
 }
 
 export default function SubmittedScreen({ answer, answerType }: SubmittedScreenProps) {
-  const opt = findOption(answerType, answer)
-  const color = opt?.color ?? '#06d6a0'
-  const label = opt?.label ?? answer
+  const isSurvey = answerType === 'survey'
+  const opt = isSurvey ? null : findOption(answerType, answer)
+  const color = opt?.color ?? '#00f5d4'
+  const label = isSurvey ? '💬' : (opt?.label ?? answer)
 
   return (
     <div style={{ textAlign: 'center', padding: '48px 24px', animation: 'fadeUp 0.4s ease forwards' }}>
@@ -28,7 +29,9 @@ export default function SubmittedScreen({ answer, answerType }: SubmittedScreenP
         已送出答案！
       </h2>
       <p style={{ fontSize: '15px', color: 'rgba(230,237,243,0.5)', fontFamily: 'Syne, sans-serif', marginBottom: '32px' }}>
-        你選擇了 <span style={{ color, fontWeight: 700 }}>{opt?.name ?? label}</span>
+        {isSurvey
+          ? <>你的回應：<span style={{ color, fontWeight: 700 }}>{answer}</span></>
+          : <>你選擇了 <span style={{ color, fontWeight: 700 }}>{opt?.name ?? label}</span></>}
       </p>
 
       <div style={{

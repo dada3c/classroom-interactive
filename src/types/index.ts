@@ -1,7 +1,11 @@
 import { Timestamp } from 'firebase/firestore'
 
 export type RoomStatus = 'waiting' | 'answering' | 'ended' | 'finished'
-export type AnswerType = 'OX' | 'choice'
+export type AnswerType = 'OX' | 'choice' | 'survey'
+
+export function isGradedType(type: AnswerType): boolean {
+  return type === 'OX' || type === 'choice'
+}
 
 export interface AnswerOption {
   key: string

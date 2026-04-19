@@ -31,9 +31,12 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
     setLoading(false)
   }
 
+  const isSurvey = answerType === 'survey'
+
   const endQuestion = async () => {
-    if (!correctAnswer) return
+    if (!isSurvey && !correctAnswer) return
     setLoading(true)
+    const resolvedCorrect = isSurvey ? '' : correctAnswer!
 
     // Fetch all answers AND all members to detect unanswered
     const [answersSnap, membersSnap] = await Promise.all([
@@ -56,7 +59,7 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
         answers[d.id] = {
           answer: submitted.answer,
           nickname: submitted.nickname,
-          correct: submitted.answer === correctAnswer,
+          correct: !isSurvey && submitted.answer === resolvedCorrect,
         }
       } else {
         // Unanswered
@@ -72,13 +75,13 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
     await setDoc(doc(roundsCol(roomId), String(nextRound)), {
       roundNumber: nextRound,
       answerType: answerType,
-      correctAnswer,
+      correctAnswer: resolvedCorrect,
       answers,
     })
 
     await updateDoc(roomRef, {
       status: 'ended',
-      correctAnswer,
+      correctAnswer: resolvedCorrect,
       currentRound: nextRound,
       endedAt: serverTimestamp(),
     })
@@ -118,10 +121,11 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
             <p style={{ fontSize: '11px', color: 'rgba(230,237,243,0.4)', fontFamily: 'IBM Plex Mono, monospace', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
               題型選擇 {currentRound > 0 && `（已完成 ${currentRound} 題）`}
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {([
                 { type: 'OX' as AnswerType, label: '○✕ 是非題' },
                 { type: 'choice' as AnswerType, label: '▲■★♥ 選擇題' },
+                { type: 'survey' as AnswerType, label: '💬 開放問卷（文字雲）' },
               ]).map(({ type, label }) => (
                 <button
                   key={type}
@@ -181,9 +185,9 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
       {status === 'answering' && (
         <div className="flex flex-col gap-4">
           <p style={{ fontSize: '13px', color: 'rgba(230,237,243,0.5)', textAlign: 'center', fontFamily: 'IBM Plex Mono, monospace' }}>
-            選擇正確答案後結束
+            {isSurvey ? '學員回應會即時顯示於文字雲' : '選擇正確答案後結束'}
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          {!isSurvey && <div className="grid grid-cols-2 gap-3">
             {options.map(opt => (
               <button
                 key={opt.key}
@@ -204,18 +208,18 @@ export default function ControlPanel({ roomId, status, answerType, answeredCount
                 {options.length > 2 && <span style={{ fontSize: '12px', fontWeight: 600 }}>{opt.name}</span>}
               </button>
             ))}
-          </div>
+          </div>}
           <button
             onClick={endQuestion}
-            disabled={!correctAnswer || loading}
+            disabled={(!isSurvey && !correctAnswer) || loading}
             style={{
               padding: '14px 24px', borderRadius: '12px', fontSize: '16px',
               fontFamily: 'Syne, sans-serif', fontWeight: 700,
-              background: correctAnswer ? 'linear-gradient(135deg, #ef476f, #c0392b)' : 'rgba(255,255,255,0.05)',
-              color: correctAnswer ? 'white' : 'rgba(230,237,243,0.3)',
-              border: 'none', cursor: correctAnswer ? 'pointer' : 'not-allowed',
+              background: (isSurvey || correctAnswer) ? 'linear-gradient(135deg, #ef476f, #c0392b)' : 'rgba(255,255,255,0.05)',
+              color: (isSurvey || correctAnswer) ? 'white' : 'rgba(230,237,243,0.3)',
+              border: 'none', cursor: (isSurvey || correctAnswer) ? 'pointer' : 'not-allowed',
               transition: 'all 0.2s',
-              boxShadow: correctAnswer ? '0 0 20px rgba(239,71,111,0.3)' : 'none',
+              boxShadow: (isSurvey || correctAnswer) ? '0 0 20px rgba(239,71,111,0.3)' : 'none',
             }}
           >
             ■ 結束本題

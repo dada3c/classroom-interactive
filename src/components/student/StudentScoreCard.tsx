@@ -7,6 +7,8 @@ interface StudentScoreCardProps {
 }
 
 export default function StudentScoreCard({ memberId, nickname, rounds }: StudentScoreCardProps) {
+  const gradedRounds = rounds.filter(r => r.answerType !== 'survey')
+  const surveyRounds = rounds.filter(r => r.answerType === 'survey')
   if (rounds.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '48px 24px' }}>
@@ -20,7 +22,7 @@ export default function StudentScoreCard({ memberId, nickname, rounds }: Student
   let unanswered = 0
   const details: { round: number; status: 'correct' | 'wrong' | 'unanswered' }[] = []
 
-  rounds.forEach(r => {
+  gradedRounds.forEach(r => {
     const mine = r.answers[memberId]
     if (!mine || mine.answer === null || mine.answer === undefined) {
       unanswered++
@@ -90,6 +92,28 @@ export default function StudentScoreCard({ memberId, nickname, rounds }: Student
         <span style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: '#ef476f' }}>✗ 錯誤 {wrong}</span>
         {unanswered > 0 && <span style={{ fontSize: '13px', fontFamily: 'IBM Plex Mono, monospace', color: '#555e6e' }}>— 未作答 {unanswered}</span>}
       </div>
+
+      {/* My survey responses */}
+      {surveyRounds.length > 0 && (
+        <div style={{ marginBottom: '20px', padding: '16px', borderRadius: '12px', background: 'rgba(0,245,212,0.06)', border: '1px solid rgba(0,245,212,0.15)' }}>
+          <p style={{ fontSize: '11px', fontFamily: 'IBM Plex Mono, monospace', color: 'rgba(0,245,212,0.6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
+            💬 你的問卷回應
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {surveyRounds.map(r => {
+              const mine = r.answers[memberId]
+              return (
+                <div key={r.roundNumber} style={{ fontSize: '13px', fontFamily: 'Syne, sans-serif', textAlign: 'left' }}>
+                  <span style={{ color: 'rgba(230,237,243,0.4)', marginRight: '8px' }}>Q{r.roundNumber}</span>
+                  <span style={{ color: mine?.answer ? '#e6edf3' : 'rgba(230,237,243,0.3)' }}>
+                    {mine?.answer || '（未回應）'}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Per-question result */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
