@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import GridBackground from './components/ui/GridBackground'
 import Landing from './pages/Landing'
 import InstructorHome from './pages/instructor/InstructorHome'
@@ -28,7 +28,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: string |
 export default function App() {
   return (
     <ErrorBoundary>
-      <HashRouter>
+      <BrowserRouter>
         <GridBackground />
         <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
           <Routes>
@@ -42,7 +42,7 @@ export default function App() {
             <Route path="*"                       element={<Navigate to="/" replace />} />
           </Routes>
         </div>
-      </HashRouter>
+      </BrowserRouter>
     </ErrorBoundary>
   )
 }

@@ -116,7 +116,7 @@ export default function InstructorRoom() {
                     即時回應（{answers.length}）
                   </h3>
                   <button
-                    onClick={() => window.open(`${window.location.href.split('#')[0]}#/cloud/${room.id}`, '_blank', 'width=1200,height=700')}
+                    onClick={() => window.open(`${window.location.origin}/cloud/${room.id}`, '_blank', 'width=1200,height=700')}
                     style={{
                       padding: '6px 14px', borderRadius: '8px', fontSize: '12px',
                       fontFamily: 'IBM Plex Mono, monospace',

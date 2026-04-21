@@ -5,8 +5,7 @@ interface QRDisplayProps {
 }
 
 export default function QRDisplay({ roomId }: QRDisplayProps) {
-  const baseUrl = window.location.href.split('#')[0].replace(/\/index\.html$/, '').replace(/\/$/, '')
-  const url = `${baseUrl}/#/join/${roomId}`
+  const url = `${window.location.origin}/join/${roomId}`
 
   return (
     <div className="flex flex-col items-center gap-4">
